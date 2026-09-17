@@ -3,7 +3,7 @@ from pathlib import Path
 import pygame
 
 
-class bouton:
+class button:
 	def __init__(self, path_img_norm, path_img_hover, position, size):
 		assets_dir = Path(__file__).resolve().parents[2] / "assets" / "images"
 
