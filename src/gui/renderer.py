@@ -72,13 +72,18 @@ class Renderer:
 
 	def _create_grid(self, size_grid) :
 		grid_size = (self.width, self.height)
-		board_size = int(min(grid_size) * 0.6)
+		coef_size = 0.6
+		if size_grid > 10:
+			coef_size = 0.8
+		board_size = int(min(grid_size) * coef_size)
+		cell_size = board_size // size_grid
+		board_size = cell_size * size_grid
 
 		grid_position = (
 			(self.width - board_size) // 2,
 			(self.height - board_size) // 2,
 		)
-		self.grid = GridRenderer(grid_size, grid_position, size_grid)
+		self.grid = GridRenderer(board_size, grid_position, size_grid)
 
 	def _create_menu(self):
 		panel_height = int(self.height * 0.8)
