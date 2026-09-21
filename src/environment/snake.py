@@ -13,3 +13,6 @@ class Snake:
 	def move(self, next_head_position) :
 		self.body.insert(0, next_head_position)
 		self.body.pop()
+
+	def is_colliding_with_body(self, position) :
+		return position in self.body
