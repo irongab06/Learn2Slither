@@ -40,4 +40,8 @@ class Environment :
 			if not is_on_snake and not is_on_apple:
 				return Apple(position, apple_type)
 
-	
+	def get_apple_at(self, next_head_position) :
+		for apple in self.apples :
+			if next_head_position == apple.position:
+				return apple
+		return None
