@@ -14,13 +14,26 @@ class Environment :
 		self.apples = []
 		self._create_apples()
 
-	def step(self) :
+	def step(self, action) :
+		if action == "left":
+			self.snake.turn_left()
+		elif action == "right":
+			self.snake.turn_right()
 		next_head_position = self.snake.get_next_head_position()
 		if not self.board.is_inside(next_head_position) :
 			return False
 		if self.snake.is_colliding_with_body(next_head_position) :
 			return False
-		self.snake.move(next_head_position)
+		apple = self.get_apple_at(next_head_position)
+		grow = apple is not None and apple.apple_type == "green"
+		self.snake.move(next_head_position, grow)
+		if apple is not None and apple.apple_type == "red":
+			self.snake.shrink()
+			if not self.snake.body  :
+				return False
+		if apple is not None:
+			self.apples.remove(apple)
+			self.apples.append(self._create_random_apple(apple.apple_type))
 		return True
 
 	def _create_apples(self):
