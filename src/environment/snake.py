@@ -18,39 +18,17 @@ class Snake:
 	def shrink(self):
 		self.body.pop()
 
-	def turn_left(self):
-		x, y = self.direction
+	def left(self):
+		self.direction = (-1, 0)
 
-		if x == -1 and y == 0:
-			x = 0
-			y = 1
-		elif x == 1 and y == 0:
-			x = 0
-			y = -1
-		elif x == 0 and y == -1:
-			x = -1
-			y = 0
-		elif x == 0 and y == 1:
-			x = 1
-			y = 0
-		self.direction = (x, y)
+	def right(self):
+		self.direction = (1, 0)
 
-	def turn_right(self):
-		x, y = self.direction
+	def up(self):
+			self.direction = (0, -1)
 
-		if x == -1 and y == 0:
-			x = 0
-			y = -1
-		elif x == 1 and y == 0:
-			x = 0
-			y = 1
-		elif x == 0 and y == -1:
-			x = 1
-			y = 0
-		elif x == 0 and y == 1:
-			x = -1
-			y = 0
-		self.direction = (x, y)
+	def down(self):
+		self.direction = (0, 1)
 
 	def is_colliding_with_body(self, position) :
 		return position in self.body

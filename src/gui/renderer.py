@@ -4,6 +4,7 @@ from src.gui.button import button
 from src.gui.selection_panel import SelectionPanel
 from src.gui.ui_layout import MODEL_BUTTON_POSITION, MODEL_BUTTON_SIZE
 from src.gui.grid_renderer import GridRenderer
+from src.environment.environment import Environment
 
 class Renderer:
 	def __init__(self) :
@@ -14,6 +15,7 @@ class Renderer:
 		self._create_menu()
 
 		self.page = "menu"
+		self.game_mode = "manual"
 		self.running = True
 
 	def draw(self):
@@ -28,6 +30,12 @@ class Renderer:
 		elif self.page == "game" :
 			self.screen.blit(self.background_game, (0, 0))
 			self.grid.draw(self.screen)
+			self.grid.draw_apples(self.screen, self.environment.apples)
+			self.grid.draw_snake(
+				self.screen,
+				self.environment.snake.body,
+				self.environment.snake.direction,
+			)
 		pygame.display.flip()
 
 	def run(self):
@@ -46,11 +54,41 @@ class Renderer:
 						self.selected_model = model_name
 						self._create_grid(10)
 						self.page = "game"
+				if self.page == "game" and self.game_mode == "manual":
+					self.handle_manual_input(event)
 			self.start_game.update(pygame.mouse.get_pos())
 			for select in self.model_buttons.values() :
 				select.update(pygame.mouse.get_pos())
 			self.draw()
 		pygame.quit()
+
+	def handle_manual_input(self, event):
+		if event.type != pygame.KEYDOWN:
+			return
+		if not self.environment.snake.body:
+			return
+
+		if event.key == pygame.K_UP:
+			action = "up"
+			direction = (0, -1)
+		elif event.key == pygame.K_DOWN:
+			action = "down"
+			direction = (0, 1)
+		elif event.key == pygame.K_LEFT:
+			action = "left"
+			direction = (-1, 0)
+		elif event.key == pygame.K_RIGHT:
+			action = "right"
+			direction = (1, 0)
+		else:
+			return
+
+		x, y = self.environment.snake.direction
+		if len(self.environment.snake.body) > 1:
+			if direction == (-x, -y):
+				return
+
+		self.manual_action = action
 
 	def _create_button(self) :
 		self.start_game = button(
@@ -84,6 +122,8 @@ class Renderer:
 			(self.height - board_size) // 2,
 		)
 		self.grid = GridRenderer(board_size, grid_position, size_grid)
+		self.environment = Environment(size_grid)
+		self.manual_action = "up"
 
 	def _create_menu(self):
 		panel_height = int(self.height * 0.8)
