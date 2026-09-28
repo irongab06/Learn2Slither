@@ -15,8 +15,9 @@ class Renderer:
 		self._create_menu()
 
 		self.page = "menu"
-		self.game_mode = "manual"
 		self.running = True
+		self.game_over = False
+		self.clock = pygame.time.Clock()
 
 	def draw(self):
 		if self.page == "menu" :
@@ -43,7 +44,8 @@ class Renderer:
 			for event in pygame.event.get():
 				if event.type == pygame.QUIT:
 					self.running = False
-				if self.start_game.is_clicked(event) :
+					break
+				if self.page == "menu" and self.start_game.is_clicked(event):
 					print("Start game clicked")
 					self.page = "game_setup"
 				for model_name in ["1", "10", "100", "best"]:
@@ -54,41 +56,20 @@ class Renderer:
 						self.selected_model = model_name
 						self._create_grid(10)
 						self.page = "game"
-				if self.page == "game" and self.game_mode == "manual":
-					self.handle_manual_input(event)
 			self.start_game.update(pygame.mouse.get_pos())
 			for select in self.model_buttons.values() :
 				select.update(pygame.mouse.get_pos())
 			self.draw()
+			self.clock.tick(60)
 		pygame.quit()
 
-	def handle_manual_input(self, event):
-		if event.type != pygame.KEYDOWN:
-			return
-		if not self.environment.snake.body:
+	def update_game(self, action):
+		if self.page != "game" or self.game_over:
 			return
 
-		if event.key == pygame.K_UP:
-			action = "up"
-			direction = (0, -1)
-		elif event.key == pygame.K_DOWN:
-			action = "down"
-			direction = (0, 1)
-		elif event.key == pygame.K_LEFT:
-			action = "left"
-			direction = (-1, 0)
-		elif event.key == pygame.K_RIGHT:
-			action = "right"
-			direction = (1, 0)
-		else:
-			return
-
-		x, y = self.environment.snake.direction
-		if len(self.environment.snake.body) > 1:
-			if direction == (-x, -y):
-				return
-
-		self.manual_action = action
+		self.reward, self.game_over = self.environment.step(action)
+		if self.game_over:
+			print("Game over")
 
 	def _create_button(self) :
 		self.start_game = button(
@@ -123,7 +104,7 @@ class Renderer:
 		)
 		self.grid = GridRenderer(board_size, grid_position, size_grid)
 		self.environment = Environment(size_grid)
-		self.manual_action = "up"
+		self.game_over = False
 
 	def _create_menu(self):
 		panel_height = int(self.height * 0.8)
@@ -161,5 +142,6 @@ class Renderer:
 		self.screen = pygame.display.set_mode((self.width, self.height))
 		pygame.display.set_caption("learn2slither")
 
-renderer = Renderer()
-renderer.run()
+if __name__ == "__main__":
+	renderer = Renderer()
+	renderer.run()
