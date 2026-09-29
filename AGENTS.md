@@ -1,6 +1,6 @@
 # Learn2Slither - Contexte et consignes de travail
 
-Derniere mise a jour : 2026-09-28.
+Derniere mise a jour : 2026-09-29.
 
 Ce fichier resume les decisions utiles de la conversation. Il ne constitue pas
 une transcription complete ni une preuve que toutes les fonctionnalites sont
@@ -73,11 +73,16 @@ Les numeros suivants sont les pages imprimees, pas les indices du lecteur PDF.
   entraines doivent pouvoir jouer sur les differentes tailles.
 - Les boutons de selection de taille sont possibles en complement des arguments.
 - Le sujet ne fixe pas de taille minimale/maximale pour ce bonus.
-  L'utilisateur envisage 10 a 25 : choix personnel, pas une limite officielle.
+  Tailles retenues pour le projet : 10, 15, 20 et 25 ; choix personnel,
+  pas une limite officielle du sujet.
 - Idee de menu : `1`, `10`, `100`, `Best`, `Bonus`. `Bonus` chargerait le meilleur
   modele et permettrait le choix de grille ; ce n'est pas encore implemente.
 - Ne pas garantir qu'un modele entraine uniquement en 10 x 10 sera performant
   ailleurs : compatibilite de l'entree et generalisation doivent etre testees.
+- Charger un modele specialise different pour chaque taille ne suffit pas pour
+  ce bonus. Garder le meme modele et ses poids lorsque la taille change.
+  Entrainement sur plusieurs tailles propose pour favoriser la generalisation,
+  puis evaluation sans apprentissage sur chaque taille ; rien de cela n'est code.
 - Les bonus ne sont evalues que si tout l'obligatoire est correct.
 
 ## Architecture et etat actuel
@@ -151,25 +156,47 @@ Les numeros suivants sont les pages imprimees, pas les indices du lecteur PDF.
 - Pour l'IA avec affichage, un timer pourra etre remis plus tard, avec vitesse
   configurable. Pour entrainer sans affichage, ne pas attendre de timer.
 
+## Encodage de la vision termine
+
+- `src/state/vision.py` contient deux fonctions, sans classe.
+- `encode_symbol(symbol)` implemente le one-hot suivant, dans cet ordre precis :
+  `S` -> [1,0,0,0,0], `G` -> [0,1,0,0,0], `R` -> [0,0,1,0,0],
+  `0` -> [0,0,0,1,0], `W` -> [0,0,0,0,1]. Conserver ce mapping.
+  Le symbole vide est le chiffre zero sous forme de chaine, pas la lettre O
+  (reverifie dans le PDF). Un symbole inconnu declenche `ValueError`.
+- `encode_vision(vision)` recoit le dictionnaire complet de `get_state()`.
+  Elle parcourt les directions dans l'ordre fixe `up`, `down`, `left`, `right`,
+  puis les symboles de chaque direction, du plus proche au mur inclus.
+- `extend()` ajoute les cinq nombres directement a une seule liste plate.
+  Apres chaque rayon, `25 - len(vision[direction])` groupes de cinq zeros sont
+  ajoutes : chaque direction occupe 25 emplacements, soit 125 nombres.
+  Resultat : 4 * 25 * 5 = 500 valeurs pour toutes les tailles prevues.
+- Le remplissage [0,0,0,0,0] signifie absence de donnee APRES le mur ; ce n'est
+  ni une vraie case vide ni une information sur des cases derriere le mur.
+  La tete reste implicite, elle n'est pas encodee comme symbole du rayon.
+- Tests temporaires executes avec l'utilisateur : affichage des cinq encodages
+  corrects et vraie vision d'Environment en 10 x 10 et 25 x 25, 500 valeurs
+  dans les deux cas. 15 et 20 sont compatibles, mais pas testes lors de ces essais.
+  Ces tests ne constituent pas une verification exhaustive du contenu encode.
+- Le bloc `if __name__ == "__main__":` de demonstration a ensuite ete retire
+  par l'utilisateur. Ne pas le restaurer sans demande.
+- Limite connue : aucun controle des rayons depassant 25 symboles. Dans ce cas,
+  la fonction renverrait trop de valeurs ; valider la limite avant integration.
+
 ## Decision DQN et prochaine etape
 
-- Architecture de depart choisie : entree -> 128 -> 128 -> 4.
+- Architecture de depart choisie : 500 -> 128 -> 128 -> 4.
   Deux couches cachees de 128 neurones ; quatre sorties Q, pas des probabilites.
-- ReLU dans les couches cachees, sortie lineaire. Taille d'entree encore a definir.
+- ReLU dans les couches cachees, sortie lineaire. Taille d'entree : 500.
   C'est une base a tester, pas une garantie de resultat.
-- `src/state/vision.py` et `src/main.py` sont actuellement vides.
+- `src/main.py` etait vide lors de la derniere lecture ; l'encodage est termine.
   Aucun reseau, replay buffer, entrainement ou chargement DQN n'est implemente.
-- La prochaine etape convenue est l'encodage numerique de `get_state()` dans
-  `src/state/vision.py`, a expliquer AVANT de coder tout un agent.
-- One-hot explique comme possibilite : `0` -> [1,0,0,0,0], `W` -> [0,1,0,0,0],
-  `S` -> [0,0,1,0,0], `G` -> [0,0,0,1,0], `R` -> [0,0,0,0,1].
-  Ce mapping n'est pas encore implemente. La tete est implicite dans les rayons.
-- Il reste a choisir un format d'entree compatible avec les tailles bonus.
-  Les quatre rayons ont des longueurs variables. Ne pas pretendre qu'une simple
-  concatenation variable fonctionne avec une couche dense de taille fixe.
-  Discuter du remplissage/masquage ou d'une autre representation conforme ; ne pas
-  confondre remplissage et vraie case vide, ni ajouter d'informations hors vision.
-- Fixer aussi un ordre stable des directions et des actions lors de l'encodage.
+- Prochaine etape : construire le reseau progressivement, mais choisir d'abord
+  la bibliotheque avec l'utilisateur. Derniere question posee, sans reponse :
+  PyTorch (calcul automatique des gradients) ou NumPy (calculs a programmer) ?
+  Ne pas supposer que PyTorch est choisi et ne pas installer sans demande.
+- L'ordre des directions d'entree est fixe ; il reste a formaliser le mapping
+  entre les quatre indices de sortie et les actions absolues du moteur.
 - Notions deja expliquees : poids, biais, activation, deux couches cachees,
   exploration et cible DQN `r + gamma * max Q_cible(etat_suivant, action)` ;
   pour une transition terminale, la cible est seulement `r`.
@@ -182,7 +209,7 @@ Les numeros suivants sont les pages imprimees, pas les indices du lecteur PDF.
 
 ## Reste a faire et limites connues
 
-- Terminer l'encodage, puis construire le DQN progressivement avec l'utilisateur.
+- Choisir PyTorch ou NumPy, puis construire le DQN progressivement avec l'utilisateur.
 - Ajouter la boucle d'entrainement, les sauvegardes et l'evaluation sans apprentissage.
 - Brancher l'agent a l'affichage, a la vision/action dans le terminal et au pas-a-pas.
 - Ajouter les arguments de lancement : sessions, vitesse, taille bonus,
