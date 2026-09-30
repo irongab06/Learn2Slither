@@ -1,6 +1,6 @@
 # Learn2Slither - Contexte et consignes de travail
 
-Derniere mise a jour : 2026-09-29.
+Derniere mise a jour : 2026-09-30.
 
 Ce fichier resume les decisions utiles de la conversation. Il ne constitue pas
 une transcription complete ni une preuve que toutes les fonctionnalites sont
@@ -191,17 +191,17 @@ Les numeros suivants sont les pages imprimees, pas les indices du lecteur PDF.
   C'est une base a tester, pas une garantie de resultat.
 - `src/main.py` etait vide lors de la derniere lecture ; l'encodage est termine.
   Aucun reseau, replay buffer, entrainement ou chargement DQN n'est implemente.
-- Prochaine etape : construire le reseau progressivement, mais choisir d'abord
-  la bibliotheque avec l'utilisateur. Derniere question posee, sans reponse :
-  PyTorch (calcul automatique des gradients) ou NumPy (calculs a programmer) ?
-  Ne pas supposer que PyTorch est choisi et ne pas installer sans demande.
+- L'utilisateur a choisi PyTorch le 2026-09-30. `torch` est ajoute aux
+  dependances. Utiliser son calcul automatique des gradients, mais implementer
+  notre logique DQN. Prochaine etape : construire le reseau progressivement,
+  en expliquant chaque partie avant de coder tout un agent.
 - L'ordre des directions d'entree est fixe ; il reste a formaliser le mapping
   entre les quatre indices de sortie et les actions absolues du moteur.
 - Notions deja expliquees : poids, biais, activation, deux couches cachees,
   exploration et cible DQN `r + gamma * max Q_cible(etat_suivant, action)` ;
   pour une transition terminale, la cible est seulement `r`.
 - Reseau cible evoque, mais framework, loss, optimiseur, replay, epsilon et gamma
-  restent a choisir et expliquer. PyTorch n'est pas encore une dependance.
+  restent a choisir et expliquer, sauf le framework : PyTorch est choisi.
 - Exemples consultes : https://github.com/leogaudin/Learn2Slither
   (13 -> 42 -> 42 -> 3) et https://github.com/sungyongcho/Learn2Slither
   (24 -> 256 -> 128 -> 3), d'apres leurs README. Ils utilisent trois actions
@@ -209,7 +209,7 @@ Les numeros suivants sont les pages imprimees, pas les indices du lecteur PDF.
 
 ## Reste a faire et limites connues
 
-- Choisir PyTorch ou NumPy, puis construire le DQN progressivement avec l'utilisateur.
+- Construire le DQN avec PyTorch progressivement avec l'utilisateur.
 - Ajouter la boucle d'entrainement, les sauvegardes et l'evaluation sans apprentissage.
 - Brancher l'agent a l'affichage, a la vision/action dans le terminal et au pas-a-pas.
 - Ajouter les arguments de lancement : sessions, vitesse, taille bonus,
@@ -239,7 +239,7 @@ python -m src.gui.renderer
 python -m flake8 src
 ```
 
-`requirements.txt` contient actuellement pygame, numpy et flake8.
+`requirements.txt` contient actuellement pygame, numpy, flake8 et torch.
 Utiliser `python -m src.gui.renderer`, pas `python src/gui/renderer.py`, pour
 resoudre les imports depuis `src`. Recreer le venv sur chaque ordinateur.
 Pour des verifications graphiques sans fenetre : `SDL_VIDEODRIVER=dummy` et
