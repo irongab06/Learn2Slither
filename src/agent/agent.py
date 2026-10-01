@@ -37,7 +37,11 @@ class Agent:
 		batch = random.sample(list(self.memory), self.batch_size)
 		states = []
 		actions = []
+		next_states = []
+		rewards = []
 
 		for state, action, reward, next_state, done in batch:
 			states.append(encode_vision(state))
 			actions.append(self.actions.index(action))
+			rewards.append(reward)
+			next_states.append(encode_vision(next_state))
