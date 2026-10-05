@@ -5,6 +5,7 @@ from src.gui.selection_panel import SelectionPanel
 from src.gui.ui_layout import MODEL_BUTTON_POSITION, MODEL_BUTTON_SIZE
 from src.gui.grid_renderer import GridRenderer
 from src.environment.environment import Environment
+from src.agent.agent import Agent
 
 class Renderer:
 	def __init__(self) :
@@ -18,6 +19,8 @@ class Renderer:
 		self.running = True
 		self.game_over = False
 		self.clock = pygame.time.Clock()
+		self.move_event = pygame.event.custom_type()
+		self.move_delay = 200
 
 	def draw(self):
 		if self.page == "menu" :
@@ -45,6 +48,13 @@ class Renderer:
 				if event.type == pygame.QUIT:
 					self.running = False
 					break
+				if event.type == self.move_event:
+					if self.page == "game" and not self.game_over:
+						vision = self.environment.get_state()
+						action = self.agent.choose_action(vision)
+						self.environment.display_vision()
+						print(f"Action : {action}")
+						self.update_game(action)
 				if self.page == "menu" and self.start_game.is_clicked(event):
 					print("Start game clicked")
 					self.page = "game_setup"
@@ -53,14 +63,19 @@ class Renderer:
 						self.page == "game_setup"
 						and self.model_buttons[model_name].is_clicked(event)
 					):
+						if not self._load_model(model_name):
+							continue
 						self.selected_model = model_name
 						self._create_grid(10)
 						self.page = "game"
+						pygame.event.clear(self.move_event)
+						pygame.time.set_timer(self.move_event, self.move_delay)
 			self.start_game.update(pygame.mouse.get_pos())
 			for select in self.model_buttons.values() :
 				select.update(pygame.mouse.get_pos())
 			self.draw()
 			self.clock.tick(60)
+		pygame.time.set_timer(self.move_event, 0)
 		pygame.quit()
 
 	def update_game(self, action):
@@ -69,7 +84,25 @@ class Renderer:
 
 		self.reward, self.game_over = self.environment.step(action)
 		if self.game_over:
+			pygame.time.set_timer(self.move_event, 0)
 			print("Game over")
+
+	def _load_model(self, model_name):
+		if model_name == "best":
+			model_name = "1000"
+		path = (
+			Path(__file__).resolve().parents[2]
+			/ "models"
+			/ f"{model_name}_sessions.pth"
+		)
+		if not path.is_file():
+			print(f"Modele introuvable : {path.name}")
+			return False
+		self.agent = Agent()
+		self.agent.load(path)
+		self.agent.epsilon = 0.0
+		self.agent.network.eval()
+		return True
 
 	def _create_button(self) :
 		self.start_game = button(

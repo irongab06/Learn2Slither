@@ -4,8 +4,15 @@ from src.environment.apple import Apple
 from src.environment.board import Board
 from src.environment.snake import Snake
 
+REWARD_GREEN_APPLE = 10
+REWARD_RED_APPLE = -5
+REWARD_STEP = -0.05
+REWARD_DEATH = -20
+REWARD_STARVATION = -20
+
+
 class Environment :
-	def __init__(self, grid_size=10):
+	def __init__(self, grid_size=10, max_steps_without_apple=0):
 		direction = (0, -1)
 
 		self.board = Board(grid_size)
@@ -13,6 +20,8 @@ class Environment :
 		self.snake = Snake(body, direction)
 		self.apples = []
 		self._create_apples()
+		self.max_steps_without_apple = max_steps_without_apple
+		self.steps_without_apple = 0
 
 	def get_state(self):
 		vision = {
@@ -90,9 +99,15 @@ class Environment :
 		self.snake = Snake(body, direction)
 		self.apples = []
 		self._create_apples()
+		self.steps_without_apple = 0
+
+	def is_starving(self):
+		if self.max_steps_without_apple <= 0:
+			return False
+		return self.steps_without_apple >= self.max_steps_without_apple
 
 	def step(self, action) :
-		reward = -0.1
+		reward = REWARD_STEP
 		if action == "left":
 			self.snake.left()
 		elif action == "right":
@@ -103,23 +118,29 @@ class Environment :
 			self.snake.down()
 		next_head_position = self.snake.get_next_head_position()
 		if not self.board.is_inside(next_head_position) :
-			return -10, True
+			return REWARD_DEATH, True
 		if self.snake.is_colliding_with_body(next_head_position) :
-			return -10, True
+			return REWARD_DEATH, True
 		apple = self.get_apple_at(next_head_position)
 		grow = apple is not None and apple.apple_type == "green"
 		self.snake.move(next_head_position, grow)
 		if apple is not None and apple.apple_type == "red":
 			self.snake.shrink()
 			if not self.snake.body  :
-				return -10, True
+				return REWARD_DEATH, True
+		if grow:
+			self.steps_without_apple = 0
+		else:
+			self.steps_without_apple += 1
 		if apple is not None:
 			self.apples.remove(apple)
 			self.apples.append(self._create_random_apple(apple.apple_type))
 			if apple.apple_type == "green":
-				reward = 1
+				reward = REWARD_GREEN_APPLE
 			else:
-				reward = -1
+				reward = REWARD_RED_APPLE
+		if self.is_starving():
+			return REWARD_STARVATION, True
 		return reward, False
 
 	def _create_apples(self):

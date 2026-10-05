@@ -25,7 +25,7 @@ class Agent:
 		self.loss_function = torch.nn.MSELoss()
 		self.optimizer = torch.optim.Adam(
 			self.network.parameters(),
-			lr=0.001,
+			lr=0.0005,
 		)
 
 	def choose_action(self, vision):

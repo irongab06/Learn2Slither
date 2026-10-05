@@ -1,9 +1,12 @@
 from src.environment.environment import Environment
 from src.agent.agent import Agent
 
-def train(sessions) :
-	env = Environment()
+def train(sessions, load_path=None, save_path=None,
+          max_steps_without_apple=100) :
+	env = Environment(max_steps_without_apple=max_steps_without_apple)
 	agent = Agent()
+	if load_path is not None:
+		agent.load(load_path)
 	for session in range(sessions):
 		env.reset()
 		done = False
@@ -32,7 +35,12 @@ def train(sessions) :
 			f"- mises a jour : {agent.training_steps} "
 			f"- epsilon : {agent.epsilon:.3f}"
 		)
-	agent.save(f"models/{sessions}_sessions.pth")
+	if save_path is None:
+		save_path = f"models/{sessions}_sessions.pth"
+	agent.save(save_path)
 
 if __name__ == "__main__":
-    train(100)
+    train(
+        2000,
+        save_path="models/2000_sessions.pth",
+    )
