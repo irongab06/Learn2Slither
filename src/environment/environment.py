@@ -4,11 +4,11 @@ from src.environment.apple import Apple
 from src.environment.board import Board
 from src.environment.snake import Snake
 
-REWARD_GREEN_APPLE = 10
-REWARD_RED_APPLE = -5
-REWARD_STEP = -0.05
-REWARD_DEATH = -20
-REWARD_STARVATION = -20
+REWARD_GREEN_APPLE = 1
+REWARD_RED_APPLE = -0.5
+REWARD_STEP = -0.005
+REWARD_DEATH = -2
+REWARD_STARVATION = -2
 
 
 class Environment :

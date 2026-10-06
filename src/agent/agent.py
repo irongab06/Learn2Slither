@@ -15,14 +15,15 @@ class Agent:
 		self.target_network.load_state_dict(self.network.state_dict())
 		self.actions = ["up", "down", "left", "right"]
 		self.epsilon = 1.0
-		self.epsilon_min = 0.05
-		self.epsilon_decay = 0.995
-		self.memory = deque(maxlen=10000)
+		self.epsilon_min = 0.01
+		self.epsilon_decay_steps = 30000
+		self.exploration_steps = 0
+		self.memory = deque(maxlen=100000)
 		self.batch_size = 64
 		self.gamma = 0.99
 		self.training_steps = 0
 		self.target_update_interval = 100
-		self.loss_function = torch.nn.MSELoss()
+		self.loss_function = torch.nn.SmoothL1Loss()
 		self.optimizer = torch.optim.Adam(
 			self.network.parameters(),
 			lr=0.0005,
@@ -40,16 +41,17 @@ class Agent:
 		return self.actions[action_index]
 
 	def decay_epsilon(self):
-		self.epsilon = max(
-			self.epsilon_min,
-			self.epsilon * self.epsilon_decay,
-		)
+		self.exploration_steps += 1
+		progression = self.exploration_steps / self.epsilon_decay_steps
+		if progression > 1.0:
+			progression = 1.0
+		self.epsilon = 1.0 - progression * (1.0 - self.epsilon_min)
 
 	def remember(self, state, action, reward, next_state, done):
 		experience = (state, action, reward, next_state, done)
 		self.memory.append(experience)
 
-	def save(self, path):
+	def save(self, path, with_memory=False):
 		path = Path(path)
 		path.parent.mkdir(parents=True, exist_ok=True)
 		checkpoint = {
@@ -58,15 +60,17 @@ class Agent:
 			"optimizer": self.optimizer.state_dict(),
 			"epsilon": self.epsilon,
 			"epsilon_min": self.epsilon_min,
-			"epsilon_decay": self.epsilon_decay,
+			"epsilon_decay_steps": self.epsilon_decay_steps,
+			"exploration_steps": self.exploration_steps,
 			"training_steps": self.training_steps,
 			"target_update_interval": self.target_update_interval,
 			"batch_size": self.batch_size,
 			"gamma": self.gamma,
 			"actions": self.actions,
-			"memory": list(self.memory),
 			"memory_capacity": self.memory.maxlen,
 		}
+		if with_memory:
+			checkpoint["memory"] = list(self.memory)
 		torch.save(checkpoint, path)
 
 	def load(self, path):
@@ -75,17 +79,22 @@ class Agent:
 		self.target_network.load_state_dict(checkpoint["target_network"])
 		self.optimizer.load_state_dict(checkpoint["optimizer"])
 		self.epsilon = checkpoint["epsilon"]
-		self.epsilon_min = checkpoint["epsilon_min"]
-		self.epsilon_decay = checkpoint["epsilon_decay"]
+		self.epsilon_min = checkpoint.get("epsilon_min", self.epsilon_min)
+		self.epsilon_decay_steps = checkpoint.get(
+			"epsilon_decay_steps",
+			self.epsilon_decay_steps,
+		)
+		self.exploration_steps = checkpoint.get("exploration_steps", 0)
 		self.training_steps = checkpoint["training_steps"]
 		self.target_update_interval = checkpoint["target_update_interval"]
 		self.batch_size = checkpoint["batch_size"]
 		self.gamma = checkpoint["gamma"]
 		self.actions = checkpoint["actions"]
-		self.memory = deque(
-			checkpoint["memory"],
-			maxlen=checkpoint["memory_capacity"],
-		)
+		if "memory" in checkpoint:
+			self.memory = deque(
+				checkpoint["memory"],
+				maxlen=checkpoint.get("memory_capacity", self.memory.maxlen),
+			)
 
 	def train_step(self):
 		if len(self.memory) < self.batch_size:
@@ -124,8 +133,12 @@ class Agent:
 		chosen_q_values = q_values[rows, actions_tensor]
 
 		with torch.no_grad():
-			next_q_values = self.target_network(next_vision_tensor)
-			best_next_q_values = next_q_values.max(dim=1).values
+			# Double DQN : le reseau principal choisit l'action,
+			# le reseau cible donne sa valeur.
+			next_q_values = self.network(next_vision_tensor)
+			best_actions = next_q_values.argmax(dim=1)
+			target_q_values = self.target_network(next_vision_tensor)
+			best_next_q_values = target_q_values[rows, best_actions]
 			best_next_q_values[dones_tensor] = 0.0
 			targets = rewards_tensor + self.gamma * best_next_q_values
 

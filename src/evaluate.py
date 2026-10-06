@@ -53,4 +53,4 @@ def evaluate(path, sessions=100, max_steps=1000,
 
 
 if __name__ == "__main__":
-    evaluate("models/2000_sessions.pth")
+    evaluate("models/best.pth")

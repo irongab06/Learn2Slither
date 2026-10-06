@@ -7,6 +7,8 @@ def train(sessions, load_path=None, save_path=None,
 	agent = Agent()
 	if load_path is not None:
 		agent.load(load_path)
+	if save_path is None:
+		save_path = f"models/{sessions}_sessions.pth"
 	for session in range(sessions):
 		env.reset()
 		done = False
@@ -26,8 +28,8 @@ def train(sessions, load_path=None, save_path=None,
 
 			agent.remember(state, action, reward, next_state, done)
 			agent.train_step()
+			agent.decay_epsilon()
 			state = next_state
-		agent.decay_epsilon()
 		print(
 			f"Partie {session + 1}/{sessions} "
 			f"- mouvements : {steps} "
@@ -35,12 +37,7 @@ def train(sessions, load_path=None, save_path=None,
 			f"- mises a jour : {agent.training_steps} "
 			f"- epsilon : {agent.epsilon:.3f}"
 		)
-	if save_path is None:
-		save_path = f"models/{sessions}_sessions.pth"
 	agent.save(save_path)
 
 if __name__ == "__main__":
-    train(
-        2000,
-        save_path="models/2000_sessions.pth",
-    )
+    train(100)
