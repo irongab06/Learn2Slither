@@ -51,50 +51,22 @@ class Agent:
 		experience = (state, action, reward, next_state, done)
 		self.memory.append(experience)
 
-	def save(self, path, with_memory=False):
+	def save(self, path):
 		path = Path(path)
 		path.parent.mkdir(parents=True, exist_ok=True)
 		checkpoint = {
 			"network": self.network.state_dict(),
-			"target_network": self.target_network.state_dict(),
-			"optimizer": self.optimizer.state_dict(),
 			"epsilon": self.epsilon,
-			"epsilon_min": self.epsilon_min,
-			"epsilon_decay_steps": self.epsilon_decay_steps,
 			"exploration_steps": self.exploration_steps,
-			"training_steps": self.training_steps,
-			"target_update_interval": self.target_update_interval,
-			"batch_size": self.batch_size,
-			"gamma": self.gamma,
-			"actions": self.actions,
-			"memory_capacity": self.memory.maxlen,
 		}
-		if with_memory:
-			checkpoint["memory"] = list(self.memory)
 		torch.save(checkpoint, path)
 
 	def load(self, path):
 		checkpoint = torch.load(path, map_location="cpu", weights_only=True)
 		self.network.load_state_dict(checkpoint["network"])
-		self.target_network.load_state_dict(checkpoint["target_network"])
-		self.optimizer.load_state_dict(checkpoint["optimizer"])
+		self.target_network.load_state_dict(self.network.state_dict())
 		self.epsilon = checkpoint["epsilon"]
-		self.epsilon_min = checkpoint.get("epsilon_min", self.epsilon_min)
-		self.epsilon_decay_steps = checkpoint.get(
-			"epsilon_decay_steps",
-			self.epsilon_decay_steps,
-		)
-		self.exploration_steps = checkpoint.get("exploration_steps", 0)
-		self.training_steps = checkpoint["training_steps"]
-		self.target_update_interval = checkpoint["target_update_interval"]
-		self.batch_size = checkpoint["batch_size"]
-		self.gamma = checkpoint["gamma"]
-		self.actions = checkpoint["actions"]
-		if "memory" in checkpoint:
-			self.memory = deque(
-				checkpoint["memory"],
-				maxlen=checkpoint.get("memory_capacity", self.memory.maxlen),
-			)
+		self.exploration_steps = checkpoint["exploration_steps"]
 
 	def train_step(self):
 		if len(self.memory) < self.batch_size:

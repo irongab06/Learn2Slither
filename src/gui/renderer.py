@@ -89,11 +89,11 @@ class Renderer:
 
 	def _load_model(self, model_name):
 		if model_name == "best":
-			model_name = "10000"
+			model_name = ""
 		path = (
 			Path(__file__).resolve().parents[2]
 			/ "models"
-			/ f"{model_name}_rescale.pth"
+			/ f"{model_name}best.pth"
 		)
 		if not path.is_file():
 			print(f"Modele introuvable : {path.name}")
