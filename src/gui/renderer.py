@@ -2,7 +2,12 @@ import pygame
 from pathlib import Path
 from src.gui.button import button
 from src.gui.selection_panel import SelectionPanel
-from src.gui.ui_layout import MODEL_BUTTON_POSITION, MODEL_BUTTON_SIZE
+from src.gui.ui_layout import (
+	MODEL_ROW_CENTER_Y,
+	MODEL_BUTTON_X,
+	MODEL_BUTTON_WIDTH,
+	MODEL_BUTTON_HEIGHT,
+)
 from src.gui.grid_renderer import GridRenderer
 from src.environment.environment import Environment
 from src.agent.agent import Agent
@@ -15,8 +20,8 @@ class Renderer:
 		self.big_font = pygame.font.SysFont("futura", 96)
 		self._setup_windows()
 		self._load_backgrounds()
-		self._create_button()
 		self._create_menu()
+		self._create_button()
 
 		self.page = "menu"
 		self.running = True
@@ -54,7 +59,7 @@ class Renderer:
 				self.environment.snake.direction,
 			)
 			self.draw_stats()
-			if self.game_over:
+			if self.finished:
 				self.draw_game_over()
 		pygame.display.flip()
 
@@ -223,14 +228,19 @@ class Renderer:
 			(280, 120),
 		)
 
-		model_choices = ["1", "10", "100", "best", "bonus"]
+		# Les boutons suivent le panneau, quelle que soit la taille de la fenetre.
+		panel = self.model_panel.rect
+		width = int(panel.width * MODEL_BUTTON_WIDTH)
+		height = int(panel.height * MODEL_BUTTON_HEIGHT)
+		x = panel.left + int(panel.width * MODEL_BUTTON_X)
 		self.model_buttons = {}
-		for index, model_name in enumerate(model_choices):
+		for model_name, center_y in MODEL_ROW_CENTER_Y.items():
+			y = panel.top + int(panel.height * center_y) - height // 2
 			self.model_buttons[model_name] = button(
 				"Select_blue.png",
 				"Select_red.png",
-				MODEL_BUTTON_POSITION[model_name],
-				MODEL_BUTTON_SIZE,
+				(x, y),
+				(width, height),
 			)
 
 	def _create_grid(self, size_grid) :

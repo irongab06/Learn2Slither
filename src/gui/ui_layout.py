@@ -1,9 +1,12 @@
-MODEL_BUTTON_POSITION = {
-	"1" : (700, 299),
-    "10": (700, 373),
-    "100": (700, 448),
-    "best": (700, 521),
-    "bonus": (700, 596),
+# Positions des boutons "Select", en fractions de la taille du panneau
+# Select_model.png (mesurees sur l'image, 1122 x 1402 pixels).
+MODEL_ROW_CENTER_Y = {
+	"1": 0.339,
+	"10": 0.446,
+	"100": 0.551,
+	"best": 0.656,
+	"bonus": 0.760,
 }
-
-MODEL_BUTTON_SIZE = (190, 60)
+MODEL_BUTTON_X = 0.63
+MODEL_BUTTON_WIDTH = 0.24
+MODEL_BUTTON_HEIGHT = 0.062
