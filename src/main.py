@@ -1,4 +1,5 @@
 import argparse
+from pathlib import Path
 
 from src.agent.agent import Agent
 from src.session import run_sessions
@@ -19,6 +20,18 @@ def main():
 
 	args = parser.parse_args()
 
+	if args.sessions < 1:
+		print("Erreur : -sessions doit etre au moins 1.")
+		return
+	if args.grid_size < 5 or args.grid_size > 25:
+		print("Erreur : -grid-size doit etre entre 5 et 25.")
+		return
+	if args.load is not None and not Path(args.load).is_file():
+		print(f"Erreur : modele introuvable : {args.load}")
+		return
+	if args.dontlearn and args.save is not None:
+		print("Erreur : -save n'a pas de sens avec -dontlearn.")
+		return
 	agent = Agent()
 	if args.load is not None:
 		agent.load(args.load)
