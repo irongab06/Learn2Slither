@@ -8,7 +8,8 @@ from src.environment.environment import Environment
 from src.agent.agent import Agent
 
 class Renderer:
-	def __init__(self) :
+	def __init__(self, agent=None, sessions=1, learn=False, speed=200,
+	             step_by_step=False, grid_size=10):
 		pygame.init()
 		self._setup_windows()
 		self._load_backgrounds()
@@ -20,7 +21,17 @@ class Renderer:
 		self.game_over = False
 		self.clock = pygame.time.Clock()
 		self.move_event = pygame.event.custom_type()
-		self.move_delay = 200
+		self.move_delay = max(1, speed)
+		self.step_by_step = step_by_step
+		self.learn = learn
+		self.sessions = sessions
+		self.sessions_done = 0
+		self.finished = False
+		self.agent = agent
+		if agent is not None:
+			# Modele passe en argument : on saute le menu.
+			self._create_grid(grid_size)
+			self._start_game()
 
 	def draw(self):
 		if self.page == "menu" :
@@ -49,12 +60,10 @@ class Renderer:
 					self.running = False
 					break
 				if event.type == self.move_event:
-					if self.page == "game" and not self.game_over:
-						vision = self.environment.get_state()
-						action = self.agent.choose_action(vision)
-						self.environment.display_vision()
-						print(f"Action : {action}")
-						self.update_game(action)
+					self.play_one_step()
+				if event.type == pygame.KEYDOWN and self.step_by_step:
+					if event.key in (pygame.K_SPACE, pygame.K_RIGHT):
+						self.play_one_step()
 				if self.page == "menu" and self.start_game.is_clicked(event):
 					print("Start game clicked")
 					self.page = "game_setup"
@@ -67,9 +76,7 @@ class Renderer:
 							continue
 						self.selected_model = model_name
 						self._create_grid(10)
-						self.page = "game"
-						pygame.event.clear(self.move_event)
-						pygame.time.set_timer(self.move_event, self.move_delay)
+						self._start_game()
 			self.start_game.update(pygame.mouse.get_pos())
 			for select in self.model_buttons.values() :
 				select.update(pygame.mouse.get_pos())
@@ -78,23 +85,76 @@ class Renderer:
 		pygame.time.set_timer(self.move_event, 0)
 		pygame.quit()
 
-	def update_game(self, action):
-		if self.page != "game" or self.game_over:
+	def _start_game(self):
+		self.page = "game"
+		self.game_over = False
+		self.steps = 0
+		self.max_length = len(self.environment.snake.body)
+		self.state = self.environment.get_state()
+		pygame.event.clear(self.move_event)
+		if not self.step_by_step:
+			pygame.time.set_timer(self.move_event, self.move_delay)
+
+	def play_one_step(self):
+		if self.page != "game" or self.finished:
+			return
+		if self.game_over:
+			# La partie precedente est finie : on en lance une nouvelle.
+			self.environment.reset()
+			self._start_game()
 			return
 
-		self.reward, self.game_over = self.environment.step(action)
+		action = self.agent.choose_action(self.state)
+		self.environment.display_vision()
+		print(f"Action : {action}")
+		reward, self.game_over = self.environment.step(action)
+		self.steps += 1
+		self.max_length = max(
+			self.max_length,
+			len(self.environment.snake.body),
+		)
+
 		if self.game_over:
+			next_state = None
+		else:
+			next_state = self.environment.get_state()
+
+		if self.learn:
+			self.agent.remember(
+				self.state, action, reward, next_state, self.game_over
+			)
+			self.agent.train_step()
+			self.agent.decay_epsilon()
+		self.state = next_state
+
+		if self.game_over:
+			self._end_of_game()
+
+	def _end_of_game(self):
+		self.sessions_done += 1
+		if self.environment.is_starving():
+			print(
+				f"Partie arretee : {self.environment.steps_without_apple} "
+				f"coups sans pomme verte, "
+				f"final length = {len(self.environment.snake.body)}, "
+				f"max length = {self.max_length}, max duration = {self.steps}"
+			)
+		else:
+			print(
+				f"Game over, final length = {len(self.environment.snake.body)}, "
+				f"max length = {self.max_length}, max duration = {self.steps}"
+			)
+		if self.sessions_done >= self.sessions:
+			self.finished = True
 			pygame.time.set_timer(self.move_event, 0)
-			print("Game over")
+			print("Toutes les parties sont terminees : fermez la fenetre.")
 
 	def _load_model(self, model_name):
 		if model_name == "best":
-			model_name = ""
-		path = (
-			Path(__file__).resolve().parents[2]
-			/ "models"
-			/ f"{model_name}best.pth"
-		)
+			file_name = "best.pth"
+		else:
+			file_name = f"{model_name}_sessions.pth"
+		path = Path(__file__).resolve().parents[2] / "models" / file_name
 		if not path.is_file():
 			print(f"Modele introuvable : {path.name}")
 			return False
@@ -136,7 +196,10 @@ class Renderer:
 			(self.height - board_size) // 2,
 		)
 		self.grid = GridRenderer(board_size, grid_position, size_grid)
-		self.environment = Environment(size_grid)
+		self.environment = Environment(
+			size_grid,
+			max_steps_without_apple=size_grid * size_grid,
+		)
 		self.game_over = False
 
 	def _create_menu(self):
