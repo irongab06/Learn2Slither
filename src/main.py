@@ -17,6 +17,7 @@ def main():
 	parser.add_argument("-dontlearn", action="store_true")
 	parser.add_argument("-step-by-step", action="store_true")
 	parser.add_argument("-grid-size", type=int, default=10)
+	parser.add_argument("-menu", action="store_true")
 
 	args = parser.parse_args()
 
@@ -32,6 +33,16 @@ def main():
 	if args.dontlearn and args.save is not None:
 		print("Erreur : -save n'a pas de sens avec -dontlearn.")
 		return
+	if args.menu:
+		# Le menu choisit lui-meme le modele : pas d'agent a construire ici.
+		renderer = Renderer(
+			sessions=args.sessions,
+			speed=args.speed,
+			step_by_step=args.step_by_step,
+		)
+		renderer.run()
+		return
+
 	agent = Agent()
 	if args.load is not None:
 		agent.load(args.load)

@@ -11,6 +11,8 @@ class Renderer:
 	def __init__(self, agent=None, sessions=1, learn=False, speed=200,
 	             step_by_step=False, grid_size=10):
 		pygame.init()
+		self.font = pygame.font.SysFont("futura", 28)
+		self.big_font = pygame.font.SysFont("futura", 96)
 		self._setup_windows()
 		self._load_backgrounds()
 		self._create_button()
@@ -51,7 +53,53 @@ class Renderer:
 				self.environment.snake.body,
 				self.environment.snake.direction,
 			)
+			self.draw_stats()
+			if self.game_over:
+				self.draw_game_over()
 		pygame.display.flip()
+
+	def draw_game_over(self):
+		center = (self.width // 2, self.height // 2)
+		# Halo : le meme texte en rouge translucide, decale tout autour.
+		halo = self.big_font.render("GAME OVER", True, (255, 0, 40))
+		halo.set_alpha(70)
+		for dx in (-4, 0, 4):
+			for dy in (-4, 0, 4):
+				rect = halo.get_rect(center=(center[0] + dx, center[1] + dy))
+				self.screen.blit(halo, rect)
+		text = self.big_font.render("GAME OVER", True, (255, 60, 60))
+		self.screen.blit(text, text.get_rect(center=center))
+
+	def draw_stats(self):
+		cyan = (0, 229, 255)
+		white = (255, 255, 255)
+		if self.game_over:
+			current_session = self.sessions_done
+		else:
+			current_session = self.sessions_done + 1
+		stats = [
+			("PARTIE", f"{current_session} / {self.sessions}"),
+			("LONGUEUR", str(len(self.environment.snake.body))),
+			("MAX", str(self.max_length)),
+			("COUPS", str(self.steps)),
+		]
+		# Largeur de la colonne des libelles = le plus long d'entre eux.
+		label_width = 0
+		for label, _ in stats:
+			label_width = max(label_width, self.font.size(label)[0])
+		value_x = 36 + label_width + 24
+		panel_width = value_x + 90
+		# A gauche du plateau, aligne sur son bord haut.
+		grid_x, grid_y = self.grid_position
+		panel_x = max(20, grid_x - panel_width - 30)
+		panel_y = grid_y
+		y = panel_y + 12
+		for label, value in stats:
+			label_text = self.font.render(label, True, cyan)
+			value_text = self.font.render(value, True, white)
+			self.screen.blit(label_text, (panel_x + 16, y))
+			self.screen.blit(value_text, (panel_x + value_x - 20, y))
+			y += 40
 
 	def run(self):
 		while self.running:
@@ -148,6 +196,9 @@ class Renderer:
 			self.finished = True
 			pygame.time.set_timer(self.move_event, 0)
 			print("Toutes les parties sont terminees : fermez la fenetre.")
+		elif not self.step_by_step:
+			# Laisse le temps de lire "GAME OVER" avant la partie suivante.
+			pygame.time.set_timer(self.move_event, 1500)
 
 	def _load_model(self, model_name):
 		if model_name == "best":
@@ -195,6 +246,7 @@ class Renderer:
 			(self.width - board_size) // 2,
 			(self.height - board_size) // 2,
 		)
+		self.grid_position = grid_position
 		self.grid = GridRenderer(board_size, grid_position, size_grid)
 		self.environment = Environment(
 			size_grid,
