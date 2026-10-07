@@ -108,14 +108,26 @@ class Environment :
 
 	def step(self, action) :
 		reward = REWARD_STEP
-		if action == "left":
-			self.snake.left()
-		elif action == "right":
-			self.snake.right()
-		elif action == "up":
-			self.snake.up()
-		elif action == "down":
-			self.snake.down()
+		directions = {
+			"up": (0, -1),
+			"down": (0, 1),
+			"left": (-1, 0),
+			"right": (1, 0),
+		}
+		dx, dy = directions[action]
+		cx, cy = self.snake.direction
+		# Un serpent ne recule jamais : l'action inverse est ignoree,
+		# il continue tout droit.
+		is_reverse = (dx, dy) == (-cx, -cy)
+		if not is_reverse:
+			if action == "left":
+				self.snake.left()
+			elif action == "right":
+				self.snake.right()
+			elif action == "up":
+				self.snake.up()
+			elif action == "down":
+				self.snake.down()
 		next_head_position = self.snake.get_next_head_position()
 		if not self.board.is_inside(next_head_position) :
 			return REWARD_DEATH, True
