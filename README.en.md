@@ -40,14 +40,18 @@ instead of several GB), which is enough since everything runs on the processor.
 
 ### On a 42 workstation (Linux)
 
-`venv` is not always available there and the *home* quota is small: create the
-environment with `virtualenv`, inside the goinfre.
+`venv` is not available there: the environment is created with `virtualenv`,
+**from the project folder**.
 
 ```sh
-virtualenv ~/goinfre/learn2slither_venv
-source ~/goinfre/learn2slither_venv/bin/activate
+cd Learn2Slither
+python3 -m virtualenv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
+
+Since the *home* quota is small, it is better to clone the project inside the
+goinfre.
 
 Every command is run **from the project root**, either with `python snake.py`
 or `python -m src.main` (both are equivalent; `snake.py` is just a shortcut

@@ -41,14 +41,17 @@ de plusieurs Go), suffisante puisque tout tourne sur processeur.
 
 ### Sur un poste 42 (Linux)
 
-`venv` n'y est pas toujours disponible et le quota du *home* est limité :
-créer l'environnement avec `virtualenv`, dans le goinfre.
+`venv` n'y est pas disponible : l'environnement se crée avec `virtualenv`,
+**depuis le dossier du projet**.
 
 ```sh
-virtualenv ~/goinfre/learn2slither_venv
-source ~/goinfre/learn2slither_venv/bin/activate
+cd Learn2Slither
+python3 -m virtualenv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
+
+Le quota du *home* étant limité, mieux vaut cloner le projet dans le goinfre.
 
 Toutes les commandes se lancent **depuis la racine du projet**, au choix avec
 `python snake.py` ou `python -m src.main` (les deux sont équivalents ;
