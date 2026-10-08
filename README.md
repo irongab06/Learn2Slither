@@ -236,7 +236,13 @@ avec `gamma = 0.99`. Deux détails classiques pour stabiliser l'apprentissage :
 - **Double DQN** : le réseau principal choisit la meilleure action suivante, mais
   c'est une copie figée du réseau (le *réseau cible*, resynchronisée tous les
   100 pas) qui en donne la valeur. Ça limite la tendance du DQN à surestimer.
-- **Perte de Huber** (`SmoothL1Loss`) et optimiseur Adam (`lr = 0.0005`).
+- **La perte** (`SmoothL1Loss`, dite de Huber) mesure l'écart entre ce que le
+  réseau a prédit et la cible. Contrairement à l'erreur quadratique classique,
+  elle ne s'emballe pas quand l'écart est grand : une seule transition
+  surprenante ne peut pas déstabiliser tout l'apprentissage.
+- **L'optimiseur** (Adam, pas de `0.0005`) est l'algorithme qui corrige les
+  poids du réseau dans la direction qui réduit cette perte. Le pas règle la
+  taille de chaque correction : petit, pour apprendre lentement mais sûrement.
 
 ### Explorer
 
@@ -253,20 +259,17 @@ l'exploration — de quoi rejouer, ou reprendre un entraînement.
 
 ## Les modèles fournis
 
-| fichier | entraînement | longueur finale moyenne |
+| fichier | entraînement | comportement |
 |---|---|---|
-| `models/1_sessions.pth` | 1 partie | 3 — joue au hasard, meurt en quelques coups |
-| `models/10_sessions.pth` | 10 parties | 3 |
-| `models/100_sessions.pth` | 100 parties | 3 — évite déjà les murs, mais ne mange pas |
-| `models/best.pth` | 10 000 parties | **≈ 27** |
+| `models/1_sessions.pth` | 1 partie | joue au hasard, meurt en quelques coups |
+| `models/10_sessions.pth` | 10 parties | pareil |
+| `models/100_sessions.pth` | 100 parties | évite les murs, mais ne cherche pas encore les pommes |
+| `models/best.pth` | 10 000 parties | cherche les pommes et évite son corps |
 
-`best.pth`, mesuré sur 300 parties sans apprentissage (plateau 10 × 10) :
-longueur finale moyenne ≈ 27, médiane 27, **99 % des parties atteignent 10**,
-environ un tiers dépassent 30 et 10 à 15 % dépassent 35. Meilleure partie
-observée : 48.
-
-Avec le même fichier sur d'autres plateaux, le serpent joue bien de 5 × 5 à
-10 × 10, et dépasse la longueur 7 sur toutes les tailles jusqu'à 15 × 15.
+Les trois premiers montrent la progression de l'apprentissage ; `best.pth` est
+le modèle à utiliser pour jouer. Le même fichier fonctionne sur toutes les
+tailles de plateau acceptées (5 à 15), avec les meilleurs résultats en 10 × 10,
+la taille sur laquelle il a été entraîné.
 
 ## Entraîner son propre modèle
 

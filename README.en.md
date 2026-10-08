@@ -236,7 +236,13 @@ with `gamma = 0.99`. Two classic details to stabilise learning:
 - **Double DQN**: the main network picks the best next action, but a frozen copy
   of the network (the *target network*, resynchronised every 100 steps) gives its
   value. This limits the DQN's tendency to overestimate.
-- **Huber loss** (`SmoothL1Loss`) and the Adam optimiser (`lr = 0.0005`).
+- **The loss** (`SmoothL1Loss`, a.k.a. Huber loss) measures the gap between
+  what the network predicted and the target. Unlike the classic squared error,
+  it does not blow up when the gap is large: a single surprising transition
+  cannot destabilise the whole learning process.
+- **The optimiser** (Adam, step `0.0005`) is the algorithm that corrects the
+  network weights in the direction that reduces this loss. The step sets the
+  size of each correction: small, so as to learn slowly but steadily.
 
 ### Exploring
 
@@ -253,19 +259,16 @@ progress — enough to play again, or to resume a training.
 
 ## Provided models
 
-| file | training | mean final length |
+| file | training | behaviour |
 |---|---|---|
-| `models/1_sessions.pth` | 1 game | 3 — plays at random, dies within a few moves |
-| `models/10_sessions.pth` | 10 games | 3 |
-| `models/100_sessions.pth` | 100 games | 3 — already avoids walls, but does not eat |
-| `models/best.pth` | 10,000 games | **≈ 27** |
+| `models/1_sessions.pth` | 1 game | plays at random, dies within a few moves |
+| `models/10_sessions.pth` | 10 games | same |
+| `models/100_sessions.pth` | 100 games | avoids walls, but does not look for apples yet |
+| `models/best.pth` | 10,000 games | looks for apples and avoids its body |
 
-`best.pth`, measured over 300 games without learning (10 × 10 board): mean final
-length ≈ 27, median 27, **99% of games reach 10**, about a third exceed 30 and
-10 to 15% exceed 35. Best game observed: 48.
-
-With the same file on other boards, the snake plays well from 5 × 5 to 10 × 10,
-and exceeds length 7 on every size up to 15 × 15.
+The first three show the learning progression; `best.pth` is the model to use
+for playing. The same file works on every accepted board size (5 to 15), with
+the best results on 10 × 10, the size it was trained on.
 
 ## Training your own model
 
