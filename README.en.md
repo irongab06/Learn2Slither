@@ -34,8 +34,9 @@ pip install -r requirements.txt
 Dependencies: `pygame` (display), `torch` (neural network), `flake8`
 (code style). Tested with Python 3.12.
 
-Every command is run **from the project root** with `python -m src.main`
-(imports are resolved from `src`).
+Every command is run **from the project root**, either with `python snake.py`
+or `python -m src.main` (both are equivalent; `snake.py` is just a shortcut
+to `src/main.py`).
 
 ## Running the program
 

@@ -35,8 +35,9 @@ pip install -r requirements.txt
 Dépendances : `pygame` (affichage), `torch` (réseau de neurones),
 `flake8` (norme). Testé avec Python 3.12.
 
-Toutes les commandes se lancent **depuis la racine du projet** avec
-`python -m src.main` (les imports partent de `src`).
+Toutes les commandes se lancent **depuis la racine du projet**, au choix avec
+`python snake.py` ou `python -m src.main` (les deux sont équivalents ;
+`snake.py` n'est qu'un raccourci vers `src/main.py`).
 
 ## Lancer le programme
 
