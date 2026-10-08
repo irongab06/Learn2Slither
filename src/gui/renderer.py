@@ -250,7 +250,11 @@ class Renderer:
             print(f"Modele introuvable : {path.name}")
             return False
         self.agent = Agent()
-        self.agent.load(path)
+        try:
+            self.agent.load(path)
+        except Exception:
+            print(f"Erreur : {path.name} n'est pas un modele valide.")
+            return False
         self.agent.epsilon = 0.0
         self.agent.network.eval()
         return True

@@ -1,7 +1,7 @@
 from src.environment.environment import Environment
 
 
-def run_sessions(sessions, agent, learn=True, save_path=None, grid_size=10):
+def run_sessions(sessions, agent, learn=True, grid_size=10):
     env = Environment(
         grid_size,
         max_steps_without_apple=grid_size * grid_size,
@@ -58,5 +58,3 @@ def run_sessions(sessions, agent, learn=True, save_path=None, grid_size=10):
     )
     print(f"Longueur finale moyenne : {total / len(final_lengths):.1f}")
     print(f"Parties >= 35 : {nb_35} sur {len(final_lengths)}")
-    if save_path is not None:
-        agent.save(save_path)
