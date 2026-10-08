@@ -32,8 +32,23 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Dépendances : `pygame` (affichage), `torch` (réseau de neurones),
-`flake8` (norme). Testé avec Python 3.12.
+Dépendances : `pygame` (affichage), `torch` (réseau de neurones), `numpy`,
+`flake8` (norme). Testé avec Python 3.12, sur macOS et Linux.
+
+La première ligne de `requirements.txt` pointe vers l'index PyTorch **CPU** :
+sur Linux, `pip` installe ainsi la version sans CUDA (~900 Mo installés au lieu
+de plusieurs Go), suffisante puisque tout tourne sur processeur.
+
+### Sur un poste 42 (Linux)
+
+`venv` n'y est pas toujours disponible et le quota du *home* est limité :
+créer l'environnement avec `virtualenv`, dans le goinfre.
+
+```sh
+virtualenv ~/goinfre/learn2slither_venv
+source ~/goinfre/learn2slither_venv/bin/activate
+pip install -r requirements.txt
+```
 
 Toutes les commandes se lancent **depuis la racine du projet**, au choix avec
 `python snake.py` ou `python -m src.main` (les deux sont équivalents ;
