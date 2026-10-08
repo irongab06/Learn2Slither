@@ -86,7 +86,6 @@ def build_agent(args):
             return None
     if args.dontlearn:
         agent.epsilon = 0.0
-        agent.network.eval()
     return agent
 
 

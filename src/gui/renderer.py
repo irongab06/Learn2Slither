@@ -256,7 +256,6 @@ class Renderer:
             print(f"Erreur : {path.name} n'est pas un modele valide.")
             return False
         self.agent.epsilon = 0.0
-        self.agent.network.eval()
         return True
 
     def _create_button(self):
