@@ -36,6 +36,7 @@ class Renderer:
         self.sessions = sessions
         self.sessions_done = 0
         self.finished = False
+        self.record = 0
         self.agent = agent
         if agent is not None:
             # Modele passe en argument : on saute le menu.
@@ -89,15 +90,17 @@ class Renderer:
             current_session = self.sessions_done
         else:
             current_session = self.sessions_done + 1
+        neon_red = (255, 40, 70)
         stats = [
-            ("PARTIE", f"{current_session} / {self.sessions}"),
-            ("LONGUEUR", str(len(self.environment.snake.body))),
-            ("MAX", str(self.max_length)),
-            ("COUPS", str(self.steps)),
+            ("PARTIE", f"{current_session} / {self.sessions}", white),
+            ("LONGUEUR", str(len(self.environment.snake.body)), white),
+            ("MAX", str(self.max_length), white),
+            ("COUPS", str(self.steps), white),
+            ("RECORD", str(self.record), neon_red),
         ]
         # Largeur de la colonne des libelles = le plus long d'entre eux.
         label_width = 0
-        for label, _ in stats:
+        for label, _, _ in stats:
             label_width = max(label_width, self.font.size(label)[0])
         value_x = 36 + label_width + 24
         panel_width = value_x + 90
@@ -106,11 +109,19 @@ class Renderer:
         panel_x = max(20, grid_x - panel_width - 30)
         panel_y = grid_y
         y = panel_y + 12
-        for label, value in stats:
+        for label, value, color in stats:
             label_text = self.font.render(label, True, cyan)
-            value_text = self.font.render(value, True, white)
+            value_text = self.font.render(value, True, color)
+            position = (panel_x + value_x - 20, y)
+            if color == neon_red:
+                # Halo : la valeur en rouge translucide, legerement decalee.
+                halo = self.font.render(value, True, neon_red)
+                halo.set_alpha(90)
+                for dx, dy in ((-2, 0), (2, 0), (0, -2), (0, 2)):
+                    halo_position = (position[0] + dx, position[1] + dy)
+                    self.screen.blit(halo, halo_position)
             self.screen.blit(label_text, (panel_x + 16, y))
-            self.screen.blit(value_text, (panel_x + value_x - 20, y))
+            self.screen.blit(value_text, position)
             y += 40
 
     def run(self):
@@ -187,6 +198,8 @@ class Renderer:
             self.max_length,
             len(self.environment.snake.body),
         )
+        # Record : la plus grande longueur atteinte sur toute la serie.
+        self.record = max(self.record, self.max_length)
 
         if self.game_over:
             next_state = None
