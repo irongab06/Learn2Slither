@@ -55,7 +55,7 @@ class GridRenderer:
             self.board_size,
         )
 
-    def draw(self, screen) :
+    def draw(self, screen):
         # Halo extérieur
         frame_rect = self.rect.inflate(50, 50)
         frame_surface = pygame.Surface(
@@ -76,7 +76,7 @@ class GridRenderer:
             (3, 15, 32),
             self.rect,
         )
-        
+
         self.create_grid(screen)
 
         # Contour cyan très lumineux
@@ -94,7 +94,7 @@ class GridRenderer:
         start_y = self.rect.top
         end_y = self.rect.bottom - 1
 
-        for line_number in range(1, self.grid_size) :
+        for line_number in range(1, self.grid_size):
             offset = line_number * self.cell_size
             pygame.draw.line(
                 screen,

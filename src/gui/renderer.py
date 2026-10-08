@@ -13,6 +13,7 @@ from src.gui.grid_renderer import GridRenderer
 from src.environment.environment import Environment
 from src.agent.agent import Agent
 
+
 class Renderer:
     def __init__(self, agent=None, sessions=1, learn=False, speed=200,
                  step_by_step=False, grid_size=10):
@@ -42,20 +43,20 @@ class Renderer:
             self._start_game()
 
     def draw(self):
-        if self.page == "menu" :
+        if self.page == "menu":
             self.screen.blit(self.background, (0, 0))
             self.start_game.draw(self.screen)
-        elif self.page == "game_setup" :
+        elif self.page == "game_setup":
             self.screen.blit(self.background_game, (0, 0))
             self.model_panel.draw(self.screen)
-            for select in self.model_buttons.values() :
+            for select in self.model_buttons.values():
                 select.draw(self.screen)
         elif self.page == "bonus_setup":
             self.screen.blit(self.background_game, (0, 0))
             self.grid_panel.draw(self.screen)
             for select in self.grid_buttons.values():
                 select.draw(self.screen)
-        elif self.page == "game" :
+        elif self.page == "game":
             self.screen.blit(self.background_game, (0, 0))
             self.grid.draw(self.screen)
             self.grid.draw_apples(self.screen, self.environment.apples)
@@ -143,13 +144,13 @@ class Renderer:
                     self.page = "bonus_setup"
                 for size, select in self.grid_buttons.items():
                     if self.page == "bonus_setup" and select.is_clicked(event):
-                        # Le bonus plateau joue toujours avec le meilleur modele.
+                        # Le bonus plateau joue avec le meilleur modele.
                         if not self._load_model("best"):
                             continue
                         self._create_grid(size)
                         self._start_game()
             self.start_game.update(pygame.mouse.get_pos())
-            for select in self.model_buttons.values() :
+            for select in self.model_buttons.values():
                 select.update(pygame.mouse.get_pos())
             for select in self.grid_buttons.values():
                 select.update(pygame.mouse.get_pos())
@@ -214,7 +215,8 @@ class Renderer:
             )
         else:
             print(
-                f"Game over, final length = {len(self.environment.snake.body)}, "
+                "Game over, final length = "
+                f"{len(self.environment.snake.body)}, "
                 f"max length = {self.max_length}, max duration = {self.steps}"
             )
         if self.sessions_done >= self.sessions:
@@ -240,7 +242,7 @@ class Renderer:
         self.agent.network.eval()
         return True
 
-    def _create_button(self) :
+    def _create_button(self):
         self.start_game = button(
             "Start_game_blue.png",
             "Start_game_green.png",
@@ -248,7 +250,7 @@ class Renderer:
             (280, 120),
         )
 
-        # Les boutons suivent le panneau, quelle que soit la taille de la fenetre.
+        # Les boutons suivent le panneau, quelle que soit la fenetre.
         panel = self.model_panel.rect
         width = int(panel.width * MODEL_BUTTON_WIDTH)
         height = int(panel.height * MODEL_BUTTON_HEIGHT)
@@ -272,7 +274,7 @@ class Renderer:
                 (width, height),
             )
 
-    def _create_grid(self, size_grid) :
+    def _create_grid(self, size_grid):
         grid_size = (self.width, self.height)
         coef_size = 0.6
         if size_grid > 10:
@@ -316,13 +318,15 @@ class Renderer:
 
     def _load_backgrounds(self):
         assets_dir = Path(__file__).resolve().parents[2] / "assets" / "images"
-        self.background = pygame.image.load(assets_dir / "Background.png").convert()
-        self.background = pygame.transform.scale(self.background, (self.width, self.height))
+        size = (self.width, self.height)
+        background = pygame.image.load(assets_dir / "Background.png")
+        self.background = pygame.transform.scale(background.convert(), size)
+        background_game = pygame.image.load(assets_dir / "Background_game.png")
+        self.background_game = pygame.transform.scale(
+            background_game.convert(), size
+        )
 
-        self.background_game = pygame.image.load(assets_dir / "Background_game.png").convert()
-        self.background_game = pygame.transform.scale(self.background_game, (self.width, self.height))
-
-    def _setup_windows(self) :
+    def _setup_windows(self):
         info = pygame.display.Info()
 
         screen_width = info.current_w
@@ -333,6 +337,7 @@ class Renderer:
 
         self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption("learn2slither")
+
 
 if __name__ == "__main__":
     renderer = Renderer()

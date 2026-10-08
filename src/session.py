@@ -1,5 +1,6 @@
 from src.environment.environment import Environment
 
+
 def run_sessions(sessions, agent, learn=True, save_path=None, grid_size=10):
     env = Environment(
         grid_size,
@@ -24,7 +25,7 @@ def run_sessions(sessions, agent, learn=True, save_path=None, grid_size=10):
                 next_state = None
             else:
                 next_state = env.get_state()
-            if learn :
+            if learn:
                 agent.remember(state, action, reward, next_state, done)
                 agent.train_step()
                 agent.decay_epsilon()

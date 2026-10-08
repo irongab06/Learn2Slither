@@ -1,6 +1,7 @@
 import pygame
 from pathlib import Path
 
+
 class SelectionPanel:
     def __init__(self, path_img, position, size):
         assets_dir = Path(__file__).resolve().parents[2] / "assets" / "images"
@@ -11,5 +12,5 @@ class SelectionPanel:
 
         self.rect = self.img.get_rect(topleft=position)
 
-    def draw(self, screen) :
+    def draw(self, screen):
         screen.blit(self.img, self.rect)

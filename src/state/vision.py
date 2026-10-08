@@ -11,6 +11,7 @@ def encode_symbol(symbol):
         return [0, 0, 0, 0, 1]
     raise ValueError(f"Symbole inconnu : {symbol}")
 
+
 def encode_vision(vision):
     encoded_vision = []
     for direction in ["up", "down", "left", "right"]:

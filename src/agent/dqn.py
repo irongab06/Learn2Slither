@@ -1,5 +1,6 @@
 import torch.nn as nn
 
+
 class DQN(nn.Module):
     def __init__(self):
         super().__init__()
@@ -14,7 +15,8 @@ class DQN(nn.Module):
         x = self.layer2(x)
         x = nn.functional.relu(x)
 
-        return(self.output(x))
+        return (self.output(x))
+
 
 if __name__ == "__main__":
     import torch

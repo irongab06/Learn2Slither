@@ -25,10 +25,10 @@ class Snake:
         self.direction = (1, 0)
 
     def up(self):
-            self.direction = (0, -1)
+        self.direction = (0, -1)
 
     def down(self):
         self.direction = (0, 1)
 
-    def is_colliding_with_body(self, position) :
+    def is_colliding_with_body(self, position):
         return position in self.body

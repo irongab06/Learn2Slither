@@ -2,7 +2,7 @@ class Board:
     def __init__(self, grid_size):
         self.grid_size = grid_size
 
-    def is_inside(self,position):
+    def is_inside(self, position):
         x, y = position
         if (
             x < 0

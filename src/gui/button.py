@@ -16,16 +16,16 @@ class button:
         self.current_img = self.normal_img
         self.rect = self.current_img.get_rect(topleft=position)
 
-    def update(self, mouse_position) :
-        if self.rect.collidepoint(mouse_position) :
+    def update(self, mouse_position):
+        if self.rect.collidepoint(mouse_position):
             self.current_img = self.hover_img
-        else :
+        else:
             self.current_img = self.normal_img
 
-    def draw(self, screen) :
+    def draw(self, screen):
         screen.blit(self.current_img, self.rect)
 
-    def is_clicked(self, event) :
+    def is_clicked(self, event):
         return (
             event.type == pygame.MOUSEBUTTONDOWN
             and event.button == 1

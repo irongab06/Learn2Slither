@@ -11,7 +11,7 @@ REWARD_DEATH = -2
 REWARD_STARVATION = -2
 
 
-class Environment :
+class Environment:
     def __init__(self, grid_size=10, max_steps_without_apple=0):
         direction = (0, -1)
 
@@ -106,7 +106,7 @@ class Environment :
             return False
         return self.steps_without_apple >= self.max_steps_without_apple
 
-    def step(self, action) :
+    def step(self, action):
         reward = REWARD_STEP
         directions = {
             "up": (0, -1),
@@ -129,16 +129,16 @@ class Environment :
             elif action == "down":
                 self.snake.down()
         next_head_position = self.snake.get_next_head_position()
-        if not self.board.is_inside(next_head_position) :
+        if not self.board.is_inside(next_head_position):
             return REWARD_DEATH, True
-        if self.snake.is_colliding_with_body(next_head_position) :
+        if self.snake.is_colliding_with_body(next_head_position):
             return REWARD_DEATH, True
         apple = self.get_apple_at(next_head_position)
         grow = apple is not None and apple.apple_type == "green"
         self.snake.move(next_head_position, grow)
         if apple is not None and apple.apple_type == "red":
             self.snake.shrink()
-            if not self.snake.body  :
+            if not self.snake.body:
                 return REWARD_DEATH, True
         if grow:
             self.steps_without_apple = 0
@@ -172,8 +172,8 @@ class Environment :
             if not is_on_snake and not is_on_apple:
                 return Apple(position, apple_type)
 
-    def get_apple_at(self, next_head_position) :
-        for apple in self.apples :
+    def get_apple_at(self, next_head_position):
+        for apple in self.apples:
             if next_head_position == apple.position:
                 return apple
         return None
